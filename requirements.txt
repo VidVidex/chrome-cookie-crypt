@@ -1,2 +1,5 @@
-pywin32
+pywin32; sys.platform == 'win32'
 pycryptodome
+keyring; sys.platform == 'linux'
+dbus-python; sys.platform == 'linux'
+# sudo apt install libglib2.0-dev libdbus-1-dev
