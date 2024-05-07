@@ -87,6 +87,28 @@ def encrypt_linux(key, data_bytes: bytes, iv: bytes, prefix: bytes):
     return prefix + encrypted
 
 
+def dump_passwords(login_data_db_path, key):
+
+    conn = sqlite3.connect(login_data_db_path)
+    cur = conn.cursor()
+
+    # Decrypt the data and store it back in the database
+    cur.execute("SELECT origin_url, username_value, password_value FROM logins")
+    passwords = []
+    for line in cur.fetchall():
+
+        url, username, password = line
+
+        if sys.platform == "win32":
+            password = bytes(decrypt_win(key, password)['plaintext']).decode("utf-8")
+        else:
+            password = bytes(decrypt_linux(key, password)['plaintext']).decode("utf-8")
+
+        passwords.append({"url": url, "username": username, "password": password})
+
+    return passwords
+
+
 def decrypt_database(chrome_cookies_path, decrypted_cookies_path, key):
 
     # Create a copy of the original file
@@ -140,14 +162,19 @@ def encrypt_database(decrypted_cookies_path, encrypted_cookies_path, key):
     conn.commit()
 
 
+def usage():
+    usage_string = """Usage:
+python chrome.py decrypt <path/to/encrypted_cookies_db> <path/to/decrypted_cookies_db>
+python chrome.py encrypt <path/to/decrypted_cookies_db> <path/to/encrypted_cookies_db>
+python chrome.py passwords <path/to/login_data_db>
+        """
+    print(usage_string)
+
+
 if __name__ == "__main__":
 
-    if len(sys.argv) < 3:
-        usage_string = """Usage:
-python cookies.py decrypt <path/to/encrypted_cookies_db> <path/to/decrypted_cookies_db>
-python cookies.py encrypt <path/to/decrypted_cookies_db> <path/to/encrypted_cookies_db>
-        """
-        print(usage_string)
+    if len(sys.argv) < 2:
+        usage()
         exit(1)
 
     print(f"Detected platform: {sys.platform}")
@@ -185,3 +212,18 @@ python cookies.py encrypt <path/to/decrypted_cookies_db> <path/to/encrypted_cook
         encrypt_database(decrypted_cookies_db_path, encrypted_cookies_db_path, key)
 
         print("Encryption successful. You can copy the decrypted database to the correct location")
+
+    elif action == "passwords":
+
+        login_data_db_path = sys.argv[2]
+
+        print(f'Using Login Data database at "{login_data_db_path}"')
+
+        passwords = dump_passwords(login_data_db_path, key)
+
+        print(f"Found {len(passwords)} passwords:")
+        for password in passwords:
+            print(f'URL: {password["url"]}, Username: {password["username"]}, Password: {password["password"].strip()}')
+
+    else:
+        usage()
