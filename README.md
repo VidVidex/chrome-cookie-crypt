@@ -40,7 +40,7 @@ python chrome.py passwords <path/to/login_data_db>
 ### Windows
 
 - `Local State` file: `%LOCALAPPDATA%\Google\Chrome\User Data\Local State`
-- Cookies database: `%LOCALAPPDATA%\Google\Chrome\User Data\<profile name>\Cookies`, where profile name is `Default`, `Profile 1`, etc.
+- Cookies database: `%LOCALAPPDATA%\Google\Chrome\User Data\<profile name>\Network\Cookies`, where profile name is `Default`, `Profile 1`, etc.
 - Login data database: `%LOCALAPPDATA%\Google\Chrome\User Data\<profile name>\Login Data`, where profile name is `Default`, `Profile 1`, etc.
 
 ### Linux (chromium)
